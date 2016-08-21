@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.hand.mapper.CustomerMapper" >
+  <resultMap id="customerMap" type="com.hand.model.Customer" >
+    <id column="customer_id" property="customerId" jdbcType="SMALLINT" />
+    <result column="first_name" property="firstName" jdbcType="VARCHAR" />
+    <result column="last_name" property="lastName" jdbcType="VARCHAR" />
+    <result column="email" property="email" jdbcType="VARCHAR" />
+    <result column="last_update" property="lastUpdate" jdbcType="TIMESTAMP" />
+ 	<association property="address" javaType="com.hand.model.Address">
+           <id property="addressId" column="address_id"/>
+           <result property="address" column="address"/>
+    </association>
+  </resultMap>
+  
+  <select id = "validate" parameterType="Customer" resultType="short">
+  	select customer_id from customer where first_name = #{firstName}
+  </select>
+  
+  <select id="getById" parameterType="Short" resultMap="customerMap">
+		select c.customer_id,c.last_name,c.first_name,c.email,c.last_update,
+		a.address_id,a.address
+		from customer c ,address a
+		where a.address_id = c.address_id  and c.customer_id = #{customerId}
+	</select>
+	
+	<select id="getAll"   resultMap="customerMap" >
+		select c.customer_id,c.last_name,c.first_name,c.email,c.last_update,
+		a.address_id,a.address
+		from customer c ,address a where a.address_id = c.address_id 
+		order by c.customer_id
+	</select>
+	<insert id="add" parameterType="Customer" >
+		insert into customer(first_name,last_name,email,address_id,store_id,create_date)
+		values(#{firstName},#{lastName},#{email},${address.addressId},#{storeId},#{createDate})
+	</insert>
+	<update id="update" parameterType="Customer">
+		update customer set first_name=#{firstName}, last_name=#{lastName},email = #{email} ,
+		 address_id = ${address.addressId} where customer_id=#{customerId}
+	</update>
+	<delete id = "delete" parameterType="short">
+		delete from customer where customer_id=#{customerId}
+	</delete>
+	
+	<delete id="deletePayMent" parameterType="short">
+			delete from payment where customer_id=#{customerId}
+	</delete>
+	<delete id="deleteRental" parameterType="short">
+			delete from rental where customer_id=#{customerId}
+	</delete>
+ </mapper>

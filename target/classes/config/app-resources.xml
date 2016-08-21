@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+           http://www.springframework.org/schema/context
+           http://www.springframework.org/schema/context/spring-context-4.2.xsd
+           http://www.springframework.org/schema/tx
+           http://www.springframework.org/schema/tx/spring-tx-4.2.xsd">
+
+	<!-- 组件自动扫描 -->
+	<context:component-scan base-package="com.hand">
+		<context:exclude-filter type="annotation"
+			expression="org.springframework.stereotype.Controller" />
+	</context:component-scan>
+
+	<context:property-placeholder location="classpath*:config/jdbc.properties" />
+
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
+		<property name="driverClassName">
+			<value>${jdbc.driver}</value>
+		</property>
+		<property name="url">
+			<value>${jdbc.url}</value>
+		</property>
+		<property name="username">
+			<value>${jdbc.username}</value>
+		</property>
+		<property name="password">
+			<value>${jdbc.password}</value>
+		</property>
+	</bean>
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<!--dataSource属性指定要用到的连接池 -->
+		<property name="dataSource" ref="dataSource" />
+		<!--configLocation属性指定mybatis的核心配置文件 -->
+		<property name="configLocation" value="classpath:config/MyBatisConfig.xml" />
+		<!-- 所有配置的mapper文件 -->
+		<property name="mapperLocations" value="classpath*:com/hand/mapper/xml/*.xml" />
+	</bean>
+	<!-- 通过模板定制mybatis的行为 
+	<bean id="sqlSessionTemplateSimple" class="org.mybatis.spring.SqlSessionTemplate">
+		<constructor-arg index="0" ref="sqlSessionFactory" />
+		更新采用单个模式
+		<constructor-arg index="1" value="SIMPLE" />
+	</bean>
+
+	通过模板定制mybatis的行为
+	<bean id="sqlSessionTemplateBatch" class="org.mybatis.spring.SqlSessionTemplate">
+		<constructor-arg index="0" ref="sqlSessionFactory" />
+		更新采用批量模式
+		<constructor-arg index="1" value="BATCH" />
+	</bean> -->
+	<!-- 采用自动扫描方式创建mapper bean(单个更新模式) -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.hand.mapper" />
+		<!-- <property name="sqlSessionTemplateBeanName" value="sqlSessionTemplateSimple" /> -->
+		<!--  <property name="markerInterface" value="com.hand.mapper.SimpleDao" />  -->
+	</bean>
+	<!-- <bean id="FilmMapper" class="org.mybatis.spring.mapper.MapperFactoryBean"> 
+		sqlSessionFactory属性指定要用到的SqlSessionFactory实例 <property name="sqlSessionFactory" 
+		ref="sqlSessionFactory" /> mapperInterface属性指定映射器接口，用于实现此接口并生成映射器对象 <property 
+		name="mapperInterface" value="com.hand.mapper.FilmMapper" /> </bean> -->
+	<!-- transaction support -->
+	<!-- PlatformTransactionMnager -->
+	<bean id="txManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	<!-- enable transaction annotation support -->
+	<tx:annotation-driven transaction-manager="txManager" />
+</beans>
+	
